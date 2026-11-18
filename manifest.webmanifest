@@ -1,0 +1,14 @@
+{
+  "name": "Juno Travel Concierge",
+  "short_name": "Juno",
+  "description": "Your personal trip planner and pocket city guide.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef0e9",
+  "theme_color": "#15302a",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

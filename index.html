@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juno Travel Concierge</title>
+<meta name="theme-color" content="#15302a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Juno">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,600;1,6..96,400;1,6..96,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a travel magazine masthead over a two-column spread. Left: Juno (the suitcase
+   concierge) and a boarding pass that fills in as you answer. Right: the chapter you are on. */
+:root{
+  --paper:#eef0e9; --card:#fbfbf7; --ink:#15302a; --muted:#5d6f69; --line:#c9cfc4;
+  --brass:#9a7426; --brass-soft:#ead9ae; --rose:#e3a59b; --deep:#15302a; --on-deep:#f3f1e6;
+  --display:"Bodoni Moda","Didot","Bodoni MT",Georgia,serif;
+  --body:"Hanken Grotesk","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e1917; --card:#16241f; --ink:#ece9dc; --muted:#9aaba3; --line:#2c3d37;
+    --brass:#d9b769; --brass-soft:#3a3320; --rose:#e3a59b; --deep:#1d302a; --on-deep:#f3f1e6;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e1917; --card:#16241f; --ink:#ece9dc; --muted:#9aaba3; --line:#2c3d37;
+  --brass:#d9b769; --brass-soft:#3a3320; --rose:#e3a59b; --deep:#1d302a; --on-deep:#f3f1e6;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;line-height:1.08}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 80px}
+
+/* masthead */
+.mast{padding:22px 0 0;display:grid;gap:12px}
+.mast-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.logo{font-family:var(--display);font-size:clamp(44px,9vw,84px);letter-spacing:.04em;line-height:.9;text-align:center}
+.logo i{color:var(--brass);font-weight:400}
+.rule{border:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);height:4px;margin:0}
+.tabs{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
+.tab{background:none;border:1px solid transparent;border-radius:999px;padding:7px 18px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;color:var(--muted)}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{border-color:var(--ink);color:var(--ink)}
+
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--brass);font-weight:600}
+.notice{margin:16px 0 0;padding:12px 16px;border:1px solid var(--brass);background:var(--brass-soft);border-radius:10px;font-size:14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+[hidden]{display:none!important}
+
+/* spread */
+.spread{display:grid;grid-template-columns:330px 1fr;gap:36px;margin-top:30px;align-items:start}
+.side{position:sticky;top:16px;display:grid;gap:18px}
+@media (max-width:860px){.spread{grid-template-columns:1fr;gap:22px}.side{position:static}}
+
+/* Juno */
+.juno{display:flex;gap:12px;align-items:flex-end}
+.juno svg{width:92px;flex:none;animation:bob 3.2s ease-in-out infinite}
+.juno .eye{animation:blink 4.5s infinite;transform-origin:center;transform-box:fill-box}
+@keyframes bob{50%{transform:translateY(-5px) rotate(-2deg)}}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@media (prefers-reduced-motion:reduce){.juno svg,.juno .eye,.dots i{animation:none!important}}
+.bubble{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:12px 15px;font-size:15px;flex:1;min-width:0}
+.bubble b{font-family:var(--display);font-style:italic;font-weight:500;font-size:17px}
+
+/* boarding pass */
+.pass{background:var(--deep);color:var(--on-deep);border-radius:16px;overflow:hidden;font-size:13px}
+.pass-head{display:flex;justify-content:space-between;padding:12px 16px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.8}
+.route{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 16px 14px}
+.route div{min-width:0}
+.route strong{display:block;font-family:var(--display);font-weight:400;font-size:26px;line-height:1.1;overflow-wrap:anywhere}
+.route small,.pass dt{font-size:9px;letter-spacing:.2em;text-transform:uppercase;opacity:.65}
+.route .plane{flex:none;color:#d9b769;font-size:18px}
+.perf{border-top:2px dashed rgba(243,241,230,.35);margin:0 10px}
+.pass dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:0;padding:14px 16px}
+.pass dd{margin:1px 0 0;font-weight:600;overflow-wrap:anywhere}
+.pass dd.empty{opacity:.4;font-weight:400}
+.pass .wide{grid-column:1/-1}
+.barcode{height:26px;margin:0 16px 14px;background:repeating-linear-gradient(90deg,var(--on-deep) 0 2px,transparent 2px 5px,var(--on-deep) 5px 6px,transparent 6px 11px);opacity:.6}
+
+/* chapter */
+.chapter{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,4vw,38px)}
+.chapter h2{font-size:clamp(30px,5vw,46px);margin:6px 0 4px}
+.chapter h2 em{color:var(--brass)}
+.lede{color:var(--muted);max-width:60ch;margin:0 0 22px}
+.progress{display:flex;gap:5px;margin-bottom:18px}
+.progress i{height:3px;flex:1;background:var(--line);border-radius:2px}
+.progress i.on{background:var(--brass)}
+.field{margin:0 0 24px}
+.field>label,.field>.lab{display:block;font-weight:600;margin-bottom:9px}
+.field .hint{font-weight:400;color:var(--muted);font-size:13px;margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:8px 15px;cursor:pointer;font-size:14.5px;transition:transform .12s,background .15s,border-color .15s}
+.chip:hover{border-color:var(--ink);transform:translateY(-1px)}
+.chip[aria-pressed="true"]{background:var(--deep);color:var(--on-deep);border-color:var(--deep)}
+.chip small{display:block;font-size:11.5px;opacity:.7}
+.chip.big{border-radius:14px;padding:10px 16px;text-align:left}
+input[type=text],textarea{width:100%;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+input[type=text]:focus,textarea:focus{border-color:var(--ink);outline:none}
+textarea{resize:vertical;min-height:70px}
+.count{display:inline-flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:999px;padding:4px;background:var(--paper)}
+.count button{width:34px;height:34px;border-radius:50%;border:0;background:var(--card);cursor:pointer;font-size:18px}
+.count output{font-family:var(--display);font-size:22px;min-width:1.4em;text-align:center}
+.duel{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.duel .chip{border-radius:14px;text-align:center;padding:11px 10px}
+.duel span{font-family:var(--display);font-style:italic;color:var(--muted);font-size:14px}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--ink);background:none;border-radius:999px;padding:11px 24px;cursor:pointer;font-weight:600;font-size:14px;letter-spacing:.04em;text-decoration:none;display:inline-block}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.gold{background:var(--deep);color:var(--on-deep);border-color:var(--deep)}
+.btn.gold:hover{background:var(--brass);border-color:var(--brass);color:#fff}
+.btn.ghost{border-color:var(--line);color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:6px 14px;font-size:12.5px}
+
+/* loading */
+.loading{display:flex;align-items:center;gap:12px;color:var(--muted);padding:18px 0;font-style:italic;font-family:var(--display);font-size:18px}
+.dots{display:inline-flex;gap:5px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--brass);animation:hop 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes hop{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-6px);opacity:1}}
+
+/* matches */
+.matches{display:grid;gap:14px;margin-top:8px}
+.match{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;border:1px solid var(--line);border-radius:16px;padding:20px;background:var(--paper)}
+.match .no{font-family:var(--display);font-style:italic;font-size:54px;line-height:.9;color:var(--brass);grid-row:span 3}
+.match h3{font-size:30px}
+.match h3 small{font-family:var(--body);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-left:8px}
+.match p{margin:2px 0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.tag{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
+.fit{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700}
+.meta{font-size:13.5px;color:var(--muted)}
+@media (max-width:520px){.match{grid-template-columns:1fr}.match .no{grid-row:auto;font-size:38px}}
+
+/* plan article */
+.article h2{font-size:clamp(34px,6vw,58px)}
+.article .standfirst{font-family:var(--display);font-style:italic;font-size:20px;line-height:1.4;max-width:58ch;margin:12px 0 6px}
+.sec{border-top:1px solid var(--line);margin-top:30px;padding-top:22px}
+.sec>h3{font-size:28px;margin:4px 0 14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--paper);display:flex;flex-direction:column;gap:5px}
+.card h4{font-family:var(--display);font-weight:600;font-size:19px;margin:0;line-height:1.2}
+.card p{margin:0;font-size:14.5px}
+.card .meta{margin-top:auto;padding-top:6px}
+.maplink{font-size:12.5px;color:var(--brass);font-weight:600;text-decoration:none;letter-spacing:.04em}
+.maplink:hover{text-decoration:underline}
+.day{display:grid;grid-template-columns:74px 1fr;gap:16px;padding:16px 0;border-bottom:1px dashed var(--line)}
+.day:last-child{border-bottom:0}
+.day .n{font-family:var(--display);font-size:44px;line-height:.9;color:var(--brass)}
+.day .n small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.day h4{font-family:var(--display);font-style:italic;font-weight:500;font-size:21px;margin:0 0 8px}
+.slot{display:grid;grid-template-columns:86px 1fr;gap:10px;font-size:14.5px;margin-bottom:6px}
+.slot b{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+.daytip{font-size:13.5px;color:var(--muted);margin:6px 0 0;padding-left:96px}
+@media (max-width:520px){.day{grid-template-columns:1fr;gap:4px}.slot{grid-template-columns:1fr;gap:0}.daytip{padding-left:0}}
+.know{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 26px}
+.know p{margin:0 0 10px;font-size:14.5px}
+.know b{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass)}
+.tweak{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tweak input{flex:1;min-width:200px}
+.fine{font-size:12.5px;color:var(--muted);margin-top:22px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+
+/* guide */
+.guide{display:grid;grid-template-columns:330px 1fr;gap:36px;margin-top:30px;align-items:start}
+@media (max-width:860px){.guide{grid-template-columns:1fr;gap:22px}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;display:grid;gap:14px}
+.panel label{font-weight:600;font-size:14px;display:grid;gap:6px}
+.quick{display:flex;flex-wrap:wrap;gap:7px}
+.quick .chip{font-size:13.5px;padding:7px 12px}
+.chat{background:var(--card);border:1px solid var(--line);border-radius:20px;display:flex;flex-direction:column;min-height:540px;max-height:78vh}
+.chat-head{padding:16px 20px;border-bottom:1px solid var(--line)}
+.chat-head h2{font-size:28px}
+.msgs{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:min(78%,560px);padding:11px 15px;border-radius:18px;font-size:15px;overflow-wrap:anywhere}
+.msg.j{background:var(--paper);border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start}
+.msg.u{background:var(--deep);color:var(--on-deep);border-bottom-right-radius:4px;align-self:flex-end}
+.msg .say{display:block;margin-top:6px;background:none;border:0;padding:0;color:var(--brass);font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.06em}
+.composer{display:flex;gap:8px;padding:14px;border-top:1px solid var(--line)}
+.composer input{flex:1;min-width:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="mast-top"><span>The Travel Concierge</span><span id="today"></span><span>Personal edition</span></div>
+    <div class="logo">J<i>u</i>no</div>
+    <hr class="rule">
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" id="tab-plan" data-view="plan">Plan a trip</button>
+      <button class="tab" role="tab" id="tab-guide" data-view="guide">City guide</button>
+    </nav>
+  </header>
+
+
+  <main id="view-plan" class="spread">
+    <aside class="side">
+      <div class="juno">
+        <svg viewBox="0 0 120 130" aria-hidden="true">
+          <path d="M44 30v-9a8 8 0 0 1 8-8h16a8 8 0 0 1 8 8v9" fill="none" stroke="#9a7426" stroke-width="5" stroke-linecap="round"/>
+          <rect x="16" y="30" width="88" height="78" rx="18" fill="#1f463d"/>
+          <rect x="16" y="30" width="88" height="78" rx="18" fill="none" stroke="#0f2a24" stroke-width="3"/>
+          <path d="M16 56h88M16 84h88" stroke="#d9b769" stroke-width="3" opacity=".8"/>
+          <ellipse class="eye" cx="46" cy="68" rx="5" ry="6.5" fill="#fbfbf7"/>
+          <ellipse class="eye" cx="74" cy="68" rx="5" ry="6.5" fill="#fbfbf7"/>
+          <circle cx="36" cy="77" r="5" fill="#e3a59b" opacity=".85"/><circle cx="84" cy="77" r="5" fill="#e3a59b" opacity=".85"/>
+          <path d="M54 76q6 6 12 0" fill="none" stroke="#fbfbf7" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M100 40l12 10-4 16-12-6z" fill="#ead9ae" stroke="#9a7426" stroke-width="2"/>
+          <circle cx="104" cy="48" r="1.8" fill="#9a7426"/>
+          <rect x="30" y="108" width="12" height="9" rx="4" fill="#0f2a24"/><rect x="78" y="108" width="12" height="9" rx="4" fill="#0f2a24"/>
+        </svg>
+        <div class="bubble" id="bubble" aria-live="polite"></div>
+      </div>
+      <div class="pass" id="pass"></div>
+    </aside>
+    <section id="stage" aria-live="polite"></section>
+  </main>
+
+  <main id="view-guide" class="guide" hidden>
+    <aside class="panel">
+      <span class="eyebrow">Where are you right now?</span>
+      <label for="g-city">City
+        <input type="text" id="g-city" placeholder="Lisbon">
+      </label>
+      <label for="g-where">What you can see around you
+        <textarea id="g-where" placeholder="A street name, a metro station, a shop sign, a landmark"></textarea>
+      </label>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="btn sm" id="g-gps">📍 Use my location</button><span class="meta" id="g-gps-note" aria-live="polite"></span></div>
+      <a class="maplink" id="g-map" target="_blank" rel="noopener" href="#" hidden>Open this spot in Maps</a>
+      <span class="eyebrow">Ask in one tap</span>
+      <div class="quick" id="quick"></div>
+      <p class="fine" style="margin:0">Your location is only used to answer your questions and is not stored. In an emergency, call the local emergency number first.</p>
+    </aside>
+    <section class="chat">
+      <div class="chat-head"><span class="eyebrow">Juno, walking beside you</span><h2>Your pocket <em>guide</em></h2></div>
+      <div class="msgs" id="msgs"></div>
+      <form class="composer" id="composer">
+        <input type="text" id="g-input" placeholder="Ask Juno anything about where you are" autocomplete="off" aria-label="Message Juno">
+        <button class="btn gold" id="g-send">Send</button>
+      </form>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const maps = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+const arr = v => Array.isArray(v) ? v : [];
+
+/* ---------- questionnaire ---------- */
+const CHAPTERS = [
+  { title:"First, <em>you</em>", lede:"A good concierge starts with the traveller, not the map.",
+    juno:p=>p.name?`Lovely to meet you, <b>${esc(p.name)}</b>. Tell me who is coming along.`:"Hello! I'm <b>Juno</b>, your travelling suitcase and concierge. What should I call you?",
+    fields:[
+      {k:"name",type:"text",label:"Your first name",ph:"Hala"},
+      {k:"from",type:"text",label:"Where are you travelling from?",ph:"Beirut, Lebanon"},
+      {k:"party",type:"one",label:"Who is coming?",opts:["🧳 Just me","💞 Me and my partner","🥂 A group of friends","🧸 Family with kids","👪 Family, all adults"]},
+      {k:"count",type:"count",label:"How many travellers in total?"},
+      {k:"age",type:"one",label:"Your age range",hint:"helps me pick the right energy",opts:["18–24","25–34","35–49","50–64","65+"]}
+    ]},
+  { title:"The <em>shape</em> of the trip", lede:"Dates, length and budget decide more than anything else.",
+    juno:()=>"Now the practical bits. Be honest about the budget, I never judge.",
+    fields:[
+      {k:"when",type:"text",label:"When would you like to go?",hint:"a month, a season or exact dates",ph:"Late March, or 12–19 April"},
+      {k:"length",type:"one",label:"How long?",opts:["Long weekend (3 nights)","5 nights","1 week","10 nights","2 weeks"]},
+      {k:"budget",type:"one",big:true,label:"Budget per person, flights not included",opts:["Smart saver|under $80 a day","Comfortable|$80–180 a day","Treat myself|$180–400 a day","No limits|$400+ a day"]},
+      {k:"occasion",type:"one",label:"Is this trip for something special?",opts:["Just because","Birthday","Honeymoon or anniversary","Graduation","I need a reset","Work plus a few days off"]}
+    ]},
+  { title:"What makes you <em>happy</em>", lede:"Pick everything that makes you say yes. There are no wrong answers.",
+    juno:p=>p.vibes.length>4?"Ooh, you have range. I like you already.":"Tap as many as you like. This is the part I enjoy most.",
+    fields:[
+      {k:"vibes",type:"many",label:"I travel for",opts:["🏖 Beaches","🏛 Old towns and history","🍜 Food","🎨 Art and museums","🥾 Nature and hikes","🪩 Nightlife","🛍 Shopping","🧖 Spa and wellness","🪂 Adventure","📷 Photography","🌹 Romance","🦓 Wildlife","⛷ Snow","🎭 Festivals and culture","🏗 Architecture","☕ Cafés and slow mornings"]},
+      {k:"pace",type:"one",big:true,label:"Your pace",opts:["Slow and dreamy|one or two things a day","Balanced|busy mornings, easy evenings","See it all|I can sleep at home"]},
+      {k:"climate",type:"many",label:"Weather you want",opts:["☀️ Warm and sunny","🌤 Mild","🍂 Cool and crisp","❄️ Snowy","No preference"]}
+    ]},
+  { title:"Where you <em>sleep</em> and what you eat", lede:"The hotel sets the mood for the whole trip.",
+    juno:()=>"I will pick hotels the way a friend would: by how they feel, not just by stars.",
+    fields:[
+      {k:"stay",type:"many",label:"Places I like to stay",opts:["Boutique hotel","Grand luxury hotel","Beach resort","Cosy guesthouse or riad","Apartment of my own","Social hostel","Something unusual"]},
+      {k:"stayMust",type:"many",label:"My room must have",opts:["Walkable location","Quiet nights","A view","Pool","Great breakfast","Gym","Free cancellation"]},
+      {k:"food",type:"many",label:"How I like to eat",opts:["Street food","Fine dining","Local home cooking","Cafés and pastries","Seafood","Rooftops and views","Markets"]},
+      {k:"diet",type:"text",label:"Dietary needs or allergies",hint:"optional",ph:"Halal, vegetarian, no shellfish"}
+    ]},
+  { title:"This or <em>that</em>", lede:"Quick fire. Go with your first instinct.",
+    juno:()=>"Don't think. Just tap. I learn a lot from these.",
+    fields:[{k:"duel",type:"duel",pairs:[["Sunrise person","Night owl"],["Plan every hour","Wander freely"],["Famous icons","Hidden corners"],["Big city buzz","Small town calm"],["Walk everywhere","Taxi, please"],["Try everything new","Comforts I know"]]}]},
+  { title:"And now, <em>where</em>?", lede:"Give me a place, or let me surprise you with three that fit.",
+    juno:p=>p.destMode==="I have a place in mind"?"Wonderful. Tell me where and I will build it around you.":"Last page. Then I open my map.",
+    fields:[
+      {k:"destMode",type:"one",big:true,label:"Destination",opts:["Surprise me|Juno picks three matches","I have a place in mind|plan that one"]},
+      {k:"destText",type:"text",label:"The place you have in mind",ph:"Kyoto, Japan",showIf:p=>p.destMode==="I have a place in mind"},
+      {k:"region",type:"many",label:"Parts of the world you are open to",opts:["Europe","Asia","Middle East","Africa","Americas","Oceania","Anywhere"],showIf:p=>p.destMode!=="I have a place in mind"},
+      {k:"flight",type:"one",label:"Longest flight you will accept",opts:["Short hop, under 4 hours","Up to 8 hours","Far is fine"],showIf:p=>p.destMode!=="I have a place in mind"},
+      {k:"passport",type:"text",label:"Passport you travel on",hint:"so I can flag visa needs",ph:"Lebanese"},
+      {k:"been",type:"text",label:"Places you have already been and loved, or want to skip",hint:"optional",ph:"Loved Istanbul. Skip Dubai."},
+      {k:"notes",type:"textarea",label:"Anything else I should know?",hint:"mobility, fears, dreams, a must-do",ph:"I get seasick. I have always wanted to see cherry blossoms."}
+    ]}
+];
+const blank = () => ({name:"",from:"",party:"",count:2,age:"",when:"",length:"",budget:"",occasion:"",vibes:[],pace:"",climate:[],stay:[],stayMust:[],food:[],diet:"",duel:{},destMode:"Surprise me",destText:"",region:[],flight:"",passport:"",been:"",notes:""});
+
+let S = {view:"plan",phase:"quiz",step:0,p:blank(),matches:null,seen:[],dest:null,plan:null,days:null,guide:{city:"",where:"",msgs:[]}};
+let busy = false, err = "", dayBusy = false;
+
+function save(){ try{ localStorage.setItem("juno-state", JSON.stringify(S)); }catch(e){} }
+function load(data){
+  let d = data && Object.keys(data).length ? data : null;
+  if(!d){ try{ d = JSON.parse(localStorage.getItem("juno-state")||"null"); }catch(e){} }
+  if(d && d.p){ S = Object.assign(S, d); S.p = Object.assign(blank(), d.p); S.guide = Object.assign({city:"",where:"",msgs:[]}, d.guide); }
+}
+
+/* ---------- Claude ---------- */
+async function post(path, body){
+  let r;
+  try{ r = await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); }
+  catch(e){ throw {code:"offline"}; }
+  if(r.status===429) throw {code:"rate_limited"};
+  if(!r.ok){ let m = ""; try{ m = (await r.json()).detail || ""; }catch(e){} throw {code:"server", message:m}; }
+  return r;
+}
+const sample = async (messages, opts={})=>{
+  const r = await post("/api/chat",{messages}), rd = r.body.getReader(), dec = new TextDecoder();
+  let text = "";
+  for(;;){ const {done,value} = await rd.read(); if(done) break; text += dec.decode(value,{stream:true}); if(opts.onText) opts.onText({text}); }
+  return {text};
+};
+sample.json = async prompt => (await post("/api/json",{prompt})).json();
+const ready = Promise.resolve();
+const tts = ("speechSynthesis" in window) ? {speak(t){ speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(t)); return Promise.resolve(); }} : null;
+function explain(e){
+  const c = e && e.code;
+  if(c==="rate_limited") return "Juno is out of breath. Wait a minute, then try again.";
+  if(c==="offline") return "Juno cannot reach her server. Check your internet connection and try again.";
+  if(e && e.message && typeof e.message==="string") return e.message;
+  return "Juno lost her train of thought. Please try again.";
+}
+async function askJSON(prompt, tier){
+  await ready;
+  if(!sample) throw {code:"offline"};
+  return await sample.json(prompt, {modelTier: tier||"default", cache:false});
+}
+function profileText(){
+  const p = S.p, L = [];
+  const add = (k,v)=>{ if(Array.isArray(v)) v = v.join(", "); if(v!==""&&v!=null) L.push(k+": "+v); };
+  add("Name",p.name); add("Travelling from",p.from); add("Party",p.party); add("Travellers",p.count); add("Age range",p.age);
+  add("When",p.when); add("Length",p.length); add("Budget per person per day, excluding flights",p.budget.replace("|"," — ")); add("Occasion",p.occasion);
+  add("Loves",p.vibes); add("Pace",p.pace.replace("|"," — ")); add("Weather wanted",p.climate);
+  add("Stay style",p.stay); add("Room must have",p.stayMust); add("Eating style",p.food); add("Dietary needs",p.diet);
+  add("This-or-that picks",Object.values(p.duel));
+  add("Open to regions",p.region); add("Longest flight",p.flight); add("Passport",p.passport); add("Been to / skip",p.been); add("Other notes",p.notes);
+  return L.join("\n");
+}
+const RULES = `You are Juno, a warm, expert travel concierge. Today is ${new Date().toDateString()}.
+Recommend only real, established places you are confident exist. If you are not sure of a specific name, describe the kind of place and the neighbourhood instead of inventing one. Never invent prices; use price tiers ($ to $$$$) or rough ranges. Respect dietary needs, budget, party and season. Write to the traveller as "you", in plain, vivid English without markdown.
+Reply with JSON only, no prose around it.`;
+
+async function findMatches(more){
+  S.seen = more ? arr(S.seen).concat(arr(S.matches).map(m=>m.city+(m.country?", "+m.country:""))) : [];
+  busy = true; err = ""; S.phase = "matches"; S.matches = null; render();
+  try{
+    const out = await askJSON(`${RULES}
+
+TRAVELLER PROFILE
+${profileText()}
+
+Choose the 3 destinations (city or compact region) that fit this traveller best for those dates, ordered best first. Make them clearly different from each other. Consider travel time from their origin and likely visa friction for their passport.
+${S.seen.length ? "The traveller has ALREADY been shown these and wants different ideas. Do not suggest any of them again, or anywhere in the same city: "+S.seen.join("; ")+"." : ""}
+JSON shape: {"matches":[{"city":"","country":"","tagline":"max 8 words","fit":0-100,"why":"2 sentences on why it fits THIS person, citing their answers","tags":["3 short tags"],"season":"what the weather and crowds are like when they go","getting_there":"rough journey from their origin","visa":"one short line, say to verify officially"}]}`);
+    S.matches = arr(out && out.matches).slice(0,3);
+    if(!S.matches.length) throw {};
+  }catch(e){ err = explain(e); }
+  busy = false; render(); save();
+}
+
+async function buildPlan(dest){
+  S.dest = dest; S.phase = "plan"; S.plan = null; S.days = null; busy = true; dayBusy = true; err = ""; render(); window.scrollTo({top:0,behavior:"smooth"});
+  const place = dest.city + (dest.country ? ", "+dest.country : "");
+  const base = `${RULES}
+
+TRAVELLER PROFILE
+${profileText()}
+
+DESTINATION: ${place}`;
+  const a = askJSON(`${base}
+
+Write the essentials of this trip.
+JSON shape: {"headline":"magazine headline, max 9 words","intro":"2-3 sentences, personal","base":"which neighbourhood to stay in and why, 1-2 sentences","stays":[{"name":"","area":"","style":"","price":"$-$$$$","why":"why it suits this traveller"}],"sights":[{"name":"","kind":"","why":"","time":"how long to allow","tip":"insider tip"}],"eats":[{"name":"dish or place","what":"","where":""}],"know":[{"topic":"","advice":""}],"pack":["item"],"budget":"one honest sentence on what a day costs here at their level"}
+Give exactly 3 stays matched to their style and budget, 7 sights (mix must-sees and quieter finds, as their answers suggest), 5 eats, 6 know items (getting around, money and tipping, etiquette, safety, visa or entry, two useful local phrases), 8 pack items for the season.`, "default")
+    .then(v=>{ S.plan = v || {}; }).catch(e=>{ err = explain(e); }).finally(()=>{ busy = false; render(); save(); });
+  const b = askJSON(daysPrompt(base, ""), "default")
+    .then(v=>{ S.days = arr(v && v.days); }).catch(e=>{ err = explain(e); }).finally(()=>{ dayBusy = false; render(); save(); });
+  await Promise.allSettled([a,b]);
+}
+function daysPrompt(base, tweak){
+  return `${base}
+
+Write the day-by-day itinerary for the full length of the stay (the first day is arrival, the last is departure). Group each day by neighbourhood so there is no zig-zagging, and match their pace.
+${tweak}
+JSON shape: {"days":[{"title":"short evocative title","morning":{"what":"1-2 sentences","place":"main place name for a map search"},"afternoon":{"what":"","place":""},"evening":{"what":"","place":""},"tip":"one practical tip"}]}`;
+}
+async function tweakDays(text){
+  if(!text.trim() || dayBusy) return;
+  const place = S.dest.city + (S.dest.country ? ", "+S.dest.country : "");
+  const old = S.days; dayBusy = true; err = ""; render();
+  try{
+    const v = await askJSON(daysPrompt(`${RULES}
+
+TRAVELLER PROFILE
+${profileText()}
+
+DESTINATION: ${place}`, `CURRENT ITINERARY (JSON): ${JSON.stringify(old)}
+The traveller asks for this change: "${text}". Keep everything that still works and return the full updated itinerary.`));
+    const d = arr(v && v.days); if(d.length) S.days = d; else throw {};
+  }catch(e){ err = explain(e); }
+  dayBusy = false; render(); save();
+}
+
+/* ---------- rendering: plan side ---------- */
+function renderPass(){
+  const p = S.p, v = (x,f)=> x ? `<dd>${esc(x)}</dd>` : `<dd class="empty">${f||"to be decided"}</dd>`;
+  const short = s => (s||"").split("|")[0].replace(/^[^\w]+\s*/u,"");
+  $("#pass").innerHTML = `
+    <div class="pass-head"><span>Boarding pass</span><span>Juno Air</span></div>
+    <div class="route"><div><small>From</small><strong>${esc(p.from || "Home")}</strong></div><span class="plane">✈</span><div style="text-align:right"><small>To</small><strong>${esc(S.dest ? S.dest.city : (p.destMode!=="Surprise me" && p.destText ? p.destText : "? ? ?"))}</strong></div></div>
+    <div class="perf"></div>
+    <dl>
+      <div><dt>Passenger</dt>${v(p.name,"your name")}</div>
+      <div><dt>Party</dt>${v(p.party ? short(p.party)+" · "+p.count : "")}</div>
+      <div><dt>When</dt>${v(p.when)}</div>
+      <div><dt>Stay</dt>${v(p.length)}</div>
+      <div><dt>Budget</dt>${v(short(p.budget))}</div>
+      <div><dt>Pace</dt>${v(short(p.pace))}</div>
+      <div class="wide"><dt>In the mood for</dt>${v(p.vibes.slice(0,4).map(short).join(" · "))}</div>
+    </dl><div class="barcode"></div>`;
+}
+function fieldHTML(f){
+  const p = S.p, id = "f-"+f.k, hint = f.hint ? `<span class="hint">${f.hint}</span>` : "";
+  if(f.showIf && !f.showIf(p)) return "";
+  if(f.type==="text") return `<div class="field"><label for="${id}">${f.label}${hint}</label><input type="text" id="${id}" data-k="${f.k}" value="${esc(p[f.k])}" placeholder="${esc(f.ph||"")}"></div>`;
+  if(f.type==="textarea") return `<div class="field"><label for="${id}">${f.label}${hint}</label><textarea id="${id}" data-k="${f.k}" placeholder="${esc(f.ph||"")}">${esc(p[f.k])}</textarea></div>`;
+  if(f.type==="count") return `<div class="field"><span class="lab">${f.label}</span><span class="count"><button type="button" data-count="-1" aria-label="Fewer travellers">−</button><output id="${id}">${p.count}</output><button type="button" data-count="1" aria-label="More travellers">+</button></span></div>`;
+  if(f.type==="duel") return `<div class="field">${f.pairs.map((pr,i)=>`<div class="duel">${pr.map(o=>`<button type="button" class="chip" data-duel="${i}" data-v="${esc(o)}" aria-pressed="${p.duel[i]===o}">${esc(o)}</button>`).join("<span>or</span>")}</div>`).join("")}</div>`;
+  const many = f.type==="many";
+  return `<div class="field"><span class="lab">${f.label}${hint || (many?'<span class="hint">pick any</span>':"")}</span><div class="chips">${f.opts.map(o=>{
+    const [t,sub] = o.split("|"), on = many ? p[f.k].includes(o) : p[f.k]===o;
+    return `<button type="button" class="chip${f.big?" big":""}" data-k="${f.k}" data-many="${many?1:""}" data-v="${esc(o)}" aria-pressed="${on}">${esc(t)}${sub?`<small>${esc(sub)}</small>`:""}</button>`;
+  }).join("")}</div></div>`;
+}
+const loading = t => `<div class="loading"><span class="dots"><i></i><i></i><i></i></span>${t}</div>`;
+const errBox = retry => err ? `<div class="notice"><span>${esc(err)}</span><button class="btn sm" data-act="${retry}">Try again</button></div>` : "";
+
+function renderQuiz(){
+  const c = CHAPTERS[S.step], last = S.step===CHAPTERS.length-1;
+  const known = S.p.destMode==="I have a place in mind";
+  $("#bubble").innerHTML = c.juno(S.p);
+  $("#stage").innerHTML = `<div class="chapter">
+    <div class="progress">${CHAPTERS.map((_,i)=>`<i class="${i<=S.step?"on":""}"></i>`).join("")}</div>
+    <span class="eyebrow">Chapter ${S.step+1} of ${CHAPTERS.length}</span>
+    <h2>${c.title}</h2><p class="lede">${c.lede}</p>
+    ${c.fields.map(fieldHTML).join("")}
+    <div class="nav">
+      <button class="btn ghost" data-act="back" ${S.step===0?"disabled":""}>Back</button>
+      ${last ? `<button class="btn gold" data-act="go" ${known && !S.p.destText.trim()?"disabled":""}>${known?"Plan my trip":"Show me my three matches"}</button>` : `<button class="btn gold" data-act="next">Continue</button>`}
+    </div></div>`;
+}
+function renderMatches(){
+  $("#bubble").innerHTML = busy ? "Give me a moment. I am spinning the globe for you." : S.matches ? `Here they are${S.p.name?", <b>"+esc(S.p.name)+"</b>":""}. Pick the one that gives you butterflies.` : "Hmm, that did not work.";
+  $("#stage").innerHTML = `<div class="chapter"><span class="eyebrow">Chosen for you</span><h2>Three places that <em>fit</em></h2>
+    <p class="lede">Ranked by how well each one matches your answers.</p>
+    ${busy ? loading("Juno is reading your answers and checking the season") : ""}
+    ${errBox(arr(S.seen).length?"more":"go")}
+    <div class="matches">${arr(S.matches).map((m,i)=>`<article class="match">
+      <div class="no">${String(i+1).padStart(2,"0")}</div>
+      <div><span class="fit">${esc(m.fit)}% fit</span><h3>${esc(m.city)}<small>${esc(m.country)}</small></h3></div>
+      <div><p><em>${esc(m.tagline)}</em></p><p>${esc(m.why)}</p>
+        <div class="tags">${arr(m.tags).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
+        <p class="meta">${esc(m.season)}</p><p class="meta">${esc(m.getting_there)}</p><p class="meta">${esc(m.visa)}</p></div>
+      <div><button class="btn gold" data-pick="${i}">Plan ${esc(m.city)} for me</button></div>
+    </article>`).join("")}</div>
+    <div class="nav"><button class="btn ghost" data-act="edit">Change my answers</button>${S.matches?`<button class="btn" data-act="more">Show me three others</button>`:""}</div></div>`;
+}
+function renderPlan(){
+  const P = S.plan, d = S.dest, city = d.city;
+  const link = (q,label) => `<a class="maplink" target="_blank" rel="noopener" href="${maps(q+", "+city)}">${label||"See on map"} ↗</a>`;
+  $("#bubble").innerHTML = busy||dayBusy ? `Packing your <b>${esc(city)}</b> plan. I fold neatly, it takes a moment.` : `All yours. Ask me to change anything, or take me along as your guide.`;
+  const slot = (name,s) => s && s.what ? `<div class="slot"><b>${name}</b><div>${esc(s.what)} ${s.place?link(s.place,esc(s.place)):""}</div></div>` : "";
+  $("#stage").innerHTML = `<article class="chapter article">
+    <span class="eyebrow">Your trip · ${esc(city)}${d.country?", "+esc(d.country):""}</span>
+    ${P ? `<h2>${esc(P.headline||city)}</h2><p class="standfirst">${esc(P.intro)}</p>` : `<h2>${esc(city)}</h2>${busy?loading("Juno is choosing your hotels and must-sees"):""}`}
+    ${errBox("replan")}
+    ${P ? `
+    <section class="sec"><span class="eyebrow">Where to stay</span><h3>Three hotels chosen for you</h3><p class="lede">${esc(P.base)}</p>
+      <div class="cards">${arr(P.stays).map(h=>`<div class="card"><h4>${esc(h.name)}</h4><span class="meta">${esc(h.area)} · ${esc(h.style)} · ${esc(h.price)}</span><p>${esc(h.why)}</p><span class="meta">${link(h.name)}</span></div>`).join("")}</div></section>
+    <section class="sec"><span class="eyebrow">Do not leave without</span><h3>The places you have to see</h3>
+      <div class="cards">${arr(P.sights).map(s=>`<div class="card"><h4>${esc(s.name)}</h4><span class="meta">${esc(s.kind)} · allow ${esc(s.time)}</span><p>${esc(s.why)}</p><p class="meta">Juno's tip: ${esc(s.tip)}</p><span class="meta">${link(s.name)}</span></div>`).join("")}</div></section>` : ""}
+    <section class="sec"><span class="eyebrow">Day by day</span><h3>Your itinerary</h3>
+      ${dayBusy ? loading("Juno is arranging your days so you never zig-zag") : ""}
+      ${arr(S.days).map((x,i)=>`<div class="day"><div class="n"><small>Day</small>${i+1}</div><div><h4>${esc(x.title)}</h4>${slot("Morning",x.morning)}${slot("Afternoon",x.afternoon)}${slot("Evening",x.evening)}${x.tip?`<p class="daytip">${esc(x.tip)}</p>`:""}</div></div>`).join("")}
+      ${S.days && !dayBusy ? `<form class="tweak" id="tweak"><input type="text" id="tweak-input" placeholder="Make day 2 slower, add a beach day, swap museums for markets" aria-label="Ask Juno to change the itinerary"><button class="btn">Ask Juno to change it</button></form>` : ""}
+    </section>
+    ${P ? `
+    <section class="sec"><span class="eyebrow">At the table</span><h3>What to eat</h3>
+      <div class="cards">${arr(P.eats).map(e=>`<div class="card"><h4>${esc(e.name)}</h4><p>${esc(e.what)}</p><span class="meta">${esc(e.where)}</span></div>`).join("")}</div></section>
+    <section class="sec"><span class="eyebrow">Know before you go</span><h3>Juno's notes</h3>
+      <div class="know">${arr(P.know).map(k=>`<p><b>${esc(k.topic)}</b>${esc(k.advice)}</p>`).join("")}<p><b>Daily budget</b>${esc(P.budget)}</p><p><b>Pack</b>${esc(arr(P.pack).join(", "))}</p></div></section>` : ""}
+    <div class="actions">
+      <button class="btn gold" data-act="guide">Take Juno with me as my guide</button>
+      <button class="btn" data-act="copy" id="copy">Copy the plan</button>
+      ${S.matches?`<button class="btn ghost" data-act="matches">Back to my matches</button>`:""}
+      <button class="btn ghost" data-act="restart">Start a new trip</button>
+    </div>
+    <p class="fine">Juno's suggestions come from an AI's general knowledge, not live listings. Check opening hours, prices, availability and entry rules before you book.</p>
+  </article>`;
+}
+function planText(){
+  const P = S.plan||{}, L = [`${S.dest.city}${S.dest.country?", "+S.dest.country:""} — ${P.headline||""}`, P.intro||"", "", "WHERE TO STAY: "+(P.base||"")];
+  arr(P.stays).forEach(h=>L.push(`- ${h.name} (${h.area}, ${h.price}): ${h.why}`));
+  L.push("","MUST-SEES"); arr(P.sights).forEach(s=>L.push(`- ${s.name}: ${s.why} Tip: ${s.tip}`));
+  L.push("","DAY BY DAY"); arr(S.days).forEach((d,i)=>L.push(`Day ${i+1}: ${d.title}`,`  Morning: ${d.morning?.what||""}`,`  Afternoon: ${d.afternoon?.what||""}`,`  Evening: ${d.evening?.what||""}`));
+  L.push("","EAT"); arr(P.eats).forEach(e=>L.push(`- ${e.name}: ${e.what}`));
+  L.push("","NOTES"); arr(P.know).forEach(k=>L.push(`- ${k.topic}: ${k.advice}`));
+  return L.join("\n");
+}
+
+/* ---------- rendering: guide ---------- */
+const QUICK = ["🧭 I'm lost, help me","🍽 Where can I eat nearby?","🚇 How do I get around?","📸 What is worth seeing near me?","🌙 Is this area fine at night?","🗣 Teach me useful phrases","🚑 Emergency numbers here","💸 Am I being overcharged?"];
+const fmt = t => esc(t).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\n/g,"<br>");
+function renderMsgs(){
+  const g = S.guide, hello = {r:"j",t:`Hello${S.p.name?" "+S.p.name:""}! I'm right here with you. Tell me the city and what you can see around you, then ask me anything: directions, food, what to see, or what a sign means.`};
+  const box = $("#msgs");
+  box.innerHTML = [hello,...g.msgs].map((m,i)=>`<div class="msg ${m.r}">${m.t ? fmt(m.t) : '<span class="dots"><i></i><i></i><i></i></span>'}${m.r==="j"&&m.t&&tts&&!m.live?`<button class="say" data-say="${i-1}">Read aloud</button>`:""}</div>`).join("");
+  box.scrollTop = box.scrollHeight;
+}
+function renderGuide(){
+  const g = S.guide;
+  if(!g.city && S.dest) g.city = S.dest.city;
+  $("#g-city").value = g.city; $("#g-where").value = g.where;
+  $("#quick").innerHTML = QUICK.map(q=>`<button type="button" class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
+  mapLink(); renderMsgs();
+}
+function mapLink(){
+  const g = S.guide, a = $("#g-map"), q = g.lat ? g.lat+","+g.lon : [g.where,g.city].filter(Boolean).join(", ");
+  a.hidden = !q; if(q) a.href = maps(q);
+}
+let chatBusy = false;
+async function sendGuide(text){
+  text = text.trim(); if(!text || chatBusy) return;
+  const g = S.guide; g.msgs.push({r:"u",t:text});
+  const reply = {r:"j",t:"",live:true}; g.msgs.push(reply); chatBusy = true; renderMsgs();
+  const sys = `You are Juno, a warm, calm, street-smart local guide walking beside a tourist. Today is ${new Date().toDateString()}.
+City: ${g.city || "not given yet"}. Where they are / what they can see: ${g.where || "not given yet"}.
+${g.lat ? "Their phone GPS reports latitude "+g.lat+", longitude "+g.lon+" (the address above was looked up from it and may be off by a building or two)." : "You do not have their GPS position."}
+${S.p.name ? "Traveller profile:\n"+profileText() : ""}
+${S.dest && S.days ? "They are on a trip planned for "+S.dest.city+"." : ""}
+If you do not know where they are, ask for the city and one thing they can see (street sign, station, landmark) before giving directions. Give directions step by step using landmarks, and suggest confirming on a map app. Only mention real places you are confident exist. If they sound unsafe or it is an emergency, lead with the local emergency number and tell them to move to a busy, well-lit place; say to verify numbers locally if unsure. Be kind and brief: under 120 words, plain text, short lines, no headings.`;
+    const hist = g.msgs.slice(0,-1).slice(-12).map(m=>({role:m.r==="u"?"user":"assistant",content:m.t}));
+  while(hist.length && hist[0].role!=="user") hist.shift();
+  hist[0] = {role:"user",content:sys+"\n\nTraveller says: "+hist[0].content};
+  try{
+    await ready; if(!sample) throw {code:"offline"};
+    const out = await sample(hist,{cache:false,onText:({text})=>{ reply.t = text==="Thinking..." ? "" : text; renderMsgs(); }});
+    reply.t = (out && out.text) || reply.t || "I did not catch that. Could you say it again?";
+  }catch(e){ reply.t = (e && e.text) || explain(e); }
+  delete reply.live; chatBusy = false; renderMsgs(); save();
+}
+
+/* ---------- shell ---------- */
+function render(){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", t.dataset.view===S.view));
+  $("#view-plan").hidden = S.view!=="plan"; $("#view-guide").hidden = S.view!=="guide";
+  if(S.view==="guide"){ renderGuide(); return; }
+  renderPass();
+  if(S.phase==="plan" && S.dest) renderPlan(); else if(S.phase==="matches") renderMatches(); else renderQuiz();
+}
+function go(view){ S.view = view; try{ if(location.hash!=="#"+view) location.hash = view; }catch(e){} render(); save(); }
+window.addEventListener("hashchange",()=>{ const h = location.hash.slice(1); if((h==="plan"||h==="guide") && h!==S.view){ S.view = h; render(); } });
+
+document.addEventListener("click", e=>{
+  const t = e.target.closest("button"); if(!t) return;
+  const p = S.p, d = t.dataset;
+  if(d.view) return go(d.view);
+  if(d.count){ p.count = Math.max(1, Math.min(20, p.count + (+d.count))); $("#f-count").textContent = p.count; renderPass(); return save(); }
+  if(d.duel!==undefined){ p.duel[d.duel] = p.duel[d.duel]===d.v ? undefined : d.v; if(p.duel[d.duel]===undefined) delete p.duel[d.duel]; render(); return save(); }
+  if(d.k && d.v!==undefined){
+    if(d.many){ const a = p[d.k], i = a.indexOf(d.v); i<0 ? a.push(d.v) : a.splice(i,1); }
+    else p[d.k] = p[d.k]===d.v ? "" : d.v;
+    if(d.k==="destMode" && !p.destMode) p.destMode = "Surprise me";
+    render(); return save();
+  }
+  if(d.pick!==undefined) return buildPlan(S.matches[+d.pick]);
+  if(d.q) return sendGuide(d.q);
+  if(d.say!==undefined && tts){ const m = S.guide.msgs[+d.say] || {t:$("#msgs .msg").textContent.replace("Read aloud","")}; tts.speak(m.t.slice(0,1900)).catch(()=>{}); return; }
+  switch(d.act){
+    case "next": S.step++; break;
+    case "back": S.step--; break;
+    case "edit": S.phase = "quiz"; break;
+    case "matches": S.phase = "matches"; S.dest = null; break;
+    case "go":
+      if(p.destMode==="I have a place in mind" && p.destText.trim()){ S.matches = null; return buildPlan({city:p.destText.trim(),country:""}); }
+      return findMatches();
+    case "more": return findMatches(true);
+    case "replan": return buildPlan(S.dest);
+    case "guide": S.guide.city = S.dest.city; return go("guide");
+    case "restart": S.phase = "quiz"; S.step = 0; S.dest = null; S.plan = null; S.days = null; S.matches = null; break;
+    case "copy":
+      navigator.clipboard.writeText(planText()).then(()=>{ t.textContent = "Copied"; },()=>{ t.textContent = "Copy was blocked"; }); return;
+    default: return;
+  }
+  err = ""; render(); save(); $("#stage").scrollIntoView({block:"nearest"});
+});
+document.addEventListener("input", e=>{
+  const t = e.target;
+  if(t.dataset.k){ S.p[t.dataset.k] = t.value; renderPass();
+    if(t.dataset.k==="destText"){ const b = document.querySelector('[data-act="go"]'); if(b) b.disabled = !t.value.trim(); }
+    if(t.dataset.k==="name") $("#bubble").innerHTML = CHAPTERS[S.step].juno(S.p);
+    save(); }
+  if(t.id==="g-city"){ S.guide.city = t.value; mapLink(); save(); }
+  if(t.id==="g-where"){ S.guide.where = t.value; S.guide.lat = S.guide.lon = null; mapLink(); save(); }
+});
+document.addEventListener("submit", e=>{
+  e.preventDefault();
+  if(e.target.id==="composer"){ const i = $("#g-input"), v = i.value; i.value = ""; sendGuide(v); }
+  if(e.target.id==="tweak"){ tweakDays($("#tweak-input").value); }
+});
+
+$("#g-gps").addEventListener("click",()=>{
+  const note = $("#g-gps-note");
+  if(!navigator.geolocation){ note.textContent = "This device does not share location. Type where you are instead."; return; }
+  note.textContent = "Finding you…";
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const g = S.guide; g.lat = +pos.coords.latitude.toFixed(5); g.lon = +pos.coords.longitude.toFixed(5);
+    try{ const r = await fetch(`/api/where?lat=${g.lat}&lon=${g.lon}`); if(r.ok){ const d = await r.json(); if(d.city) g.city = d.city; if(d.address) g.where = d.address; } }catch(e){}
+    $("#g-city").value = g.city; $("#g-where").value = g.where; mapLink(); save();
+    note.textContent = "Got it. Juno knows where you are.";
+  }, e=>{
+    note.textContent = e.code===1 ? "Location permission was declined. Allow it in your browser settings, or type where you are." : "Could not get your location. Type where you are instead.";
+  }, {enableHighAccuracy:true,timeout:15000,maximumAge:30000});
+});
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+function start(data){
+  load(data);
+  const h = location.hash.slice(1); if(h==="plan"||h==="guide") S.view = h;
+  if(S.phase==="plan" && !S.dest) S.phase = "quiz";
+  if(S.phase==="matches" && !S.matches) S.phase = "quiz";
+  S.guide.msgs = S.guide.msgs.filter(m=>m.t).map(m=>({r:m.r,t:m.t}));
+  $("#today").textContent = new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  render();
+}
+window.claude?.hot?.snapshot?.(()=>S);
+if(window.claude?.hot?.ready) window.claude.hot.ready(start); else start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>
